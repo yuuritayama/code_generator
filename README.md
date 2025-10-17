@@ -16,7 +16,7 @@
 
 ## 🚀 機能一覧
 
-### ✅ コード生成ツール（main.py）
+### ✅ コード生成ツール
 
 指定条件に応じて、重複のないランダムコードを生成します。
 
@@ -28,7 +28,7 @@
 #### ▶️ 実行方法
 
 ```
-python main.py
+python cli.py generate
 ```
 
 実行すると、対話的にパラメータを入力できます：
@@ -49,7 +49,7 @@ a1d9ze
 
 ---
 
-### ✅ 重複チェックツール（duplicate_checker.py）
+### ✅ 重複チェックツール
 
 CSV ファイルに含まれるコードの重複を検出します。
 
@@ -60,13 +60,13 @@ CSV ファイルに含まれるコードの重複を検出します。
 
 ```
 # 例：ヘッダーあり（列名: code）
-python duplicate_checker.py codes.csv
+python cli.py check samples/codes_template.csv
 
 # 例：ヘッダーなし・0列目
-python duplicate_checker.py codes.csv --no-header --column 0
+python cli.py check samples/codes_template.csv --no-header --column 0
 
 # 例：大文字小文字を無視
-python duplicate_checker.py codes.csv --ignore-case
+python cli.py check samples/codes_template.csv --ignore-case
 ```
 
 #### 📄 CSV ひな型

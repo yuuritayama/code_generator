@@ -1,29 +1,71 @@
 import argparse
+import csv
 import sys
 from pathlib import Path
 from generator import CodeGenerator
-from duplicate_checker import load_codes_from_csv, find_duplicates
+from duplicate_checker import load_codes_from_csv, find_duplicates  # ← 修正
+
+
+# --- CSV書き出しヘルパー ---
+def write_csv(path: Path, codes: list[str], *, with_index: bool, header: bool, encoding: str = "utf-8") -> None:
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", newline="", encoding=encoding) as f:
+        writer = csv.writer(f)
+        if header:
+            writer.writerow(["index", "code"] if with_index else ["code"])
+        if with_index:
+            for i, c in enumerate(codes, start=1):
+                writer.writerow([i, c])
+        else:
+            for c in codes:
+                writer.writerow([c])
 
 
 # --- 対話式コード生成 ---
 def run_generate_interactive():
+    # 入力
     length = int(input("コードの文字数を入力してください（例: 6）: "))
-    use_lowercase = input("小文字アルファベットを使いますか？ (y/n): ").lower() == 'y'
-    use_uppercase = input("大文字アルファベットを使いますか？ (y/n): ").lower() == 'y'
-    use_digits = input("数字を使いますか？ (y/n): ").lower() == 'y'
+    use_lowercase = input("小文字アルファベットを使いますか？ (y/n): ").strip().lower() == "y"
+    use_uppercase = input("大文字アルファベットを使いますか？ (y/n): ").strip().lower() == "y"
+    use_digits = input("数字を使いますか？ (y/n): ").strip().lower() == "y"
     count = int(input("生成するコード数を入力してください（例: 20）: "))
 
+    # 生成
     generator = CodeGenerator(
         length=length,
         use_lowercase=use_lowercase,
         use_uppercase=use_uppercase,
-        use_digits=use_digits
+        use_digits=use_digits,
     )
-
     codes = generator.generate_many(count)
-    print("\n✅ 生成されたコード一覧:")
-    for c in codes:
-        print(c)
+
+    # 出力先選択
+    to_csv = input("CSVに保存しますか？ (y/n): ").strip().lower() == "y"
+    if to_csv:
+        default_path = Path.cwd() / "codes.csv"
+        path_str = input(f"保存先パスを入力してください（既定: {default_path}）: ").strip()
+        path = Path(path_str) if path_str else default_path
+
+        with_index = input("インデックス列を付けますか？ (y/n): ").strip().lower() == "y"
+        header = input("ヘッダー行を出力しますか？ (y/n): ").strip().lower() == "y"
+        encoding = input("エンコーディング（既定: utf-8）: ").strip() or "utf-8"
+
+        try:
+            write_csv(path, codes, with_index=with_index, header=header, encoding=encoding)
+            print(f"\n✅ CSVを書き出しました: {path}")
+        except Exception as e:
+            print(f"\n❌ 書き出しに失敗しました: {e}")
+            sys.exit(2)
+    else:
+        # 端末表示
+        with_index = input("表示にインデックスを付けますか？ (y/n): ").strip().lower() == "y"
+        print("\n✅ 生成されたコード一覧:")
+        if with_index:
+            for i, c in enumerate(codes, start=1):
+                print(f"{i}, {c}")
+        else:
+            print("\n".join(codes))
 
 
 # --- CSV重複チェック ---
@@ -35,13 +77,13 @@ def run_check(args):
             has_header=not args.no_header,
             encoding=args.encoding,
             delimiter=args.delimiter,
-            to_lower=args.ignore_case
+            to_lower=args.ignore_case,
         )
     except Exception as e:
         print(f"❌ 読み込みエラー: {e}")
         sys.exit(2)
 
-    duplicates = find_duplicates(codes)
+    duplicates = find_duplicates(codes)  # ← ここもOK
     if duplicates:
         print(f"⚠️ 重複あり: {len(duplicates)}種類")
         for code, n in duplicates:
