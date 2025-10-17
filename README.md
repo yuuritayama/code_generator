@@ -39,12 +39,44 @@ python cli.py generate
 大文字アルファベットを使いますか？ (y/n): n
 数字を使いますか？ (y/n): y
 生成するコード数を入力してください（例: 20）: 10
+```
 
-✅ 生成されたコード一覧:
-k2h3jz
-n7a0qx
-a1d9ze
-...
+#### 📄 CSV に書き出す
+
+対話中に「CSV に保存しますか？」という質問が出たら、y を選ぶと CSV ファイルを書き出すことができます。
+
+```
+CSVに保存しますか？ (y/n): y
+保存先パスを入力してください（既定: /your/project/path/codes.csv）:
+インデックス列を付けますか？ (y/n): y
+ヘッダー行を出力しますか？ (y/n): y
+エンコーディング（既定: utf-8）:
+```
+
+- 保存先パス … 省略すると codes.csv がカレントディレクトリに作成されます
+- インデックス列 … 出力するコードの行番号を 1 列目に出力します
+- ヘッダー行 … index, code のヘッダー行を出力するか選択します
+- エンコーディング … 通常は utf-8 で OK（Windows 環境で Excel で開く場合 - は cp932 など）
+
+出力例：
+
+```
+index,code
+1,abc123
+2,xyz789
+3,k2h3jz
+```
+
+#### 📟 CSV に出力しない場合
+
+「CSV に保存しますか？」で n を選ぶと、ターミナル上にコード一覧が出力されます：
+
+出力例：
+
+```
+1, abc123
+2, xyz789
+3, k2h3jz
 ```
 
 ---
@@ -67,6 +99,14 @@ python cli.py check samples/codes_template.csv --no-header --column 0
 
 # 例：大文字小文字を無視
 python cli.py check samples/codes_template.csv --ignore-case
+```
+
+出力例：
+
+```
+⚠️ 重複あり: 2種類
+- abc123 (count=2)
+- xyz789 (count=3)
 ```
 
 #### 📄 CSV ひな型
