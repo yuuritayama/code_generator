@@ -13,8 +13,16 @@ class CodeGenerator:
     use_lowercase: bool = True
     use_uppercase: bool = False
     use_digits: bool = False
+    # 追加: 16進モード
+    use_hex: bool = False
+    hex_uppercase: bool = False
 
     def __post_init__(self):
+        if self.use_hex:
+            # 16進モードでは 0-9 + a-f / A-F のみを使う
+            self._chars = "0123456789ABCDEF" if self.hex_uppercase else "0123456789abcdef"
+            return
+
         chars = ""
         if self.use_lowercase:
             chars += string.ascii_lowercase
@@ -31,8 +39,15 @@ class CodeGenerator:
 
     def generate_many(self, count: int) -> List[str]:
         codes = set()
-        while len(codes) < count:
+        # 重複回避のため集合で貯める（理論上は重複し得る）
+        # あまりに空間が小さい場合の無限ループ回避
+        max_trials = count * 10 + 1000
+        trials = 0
+        while len(codes) < count and trials < max_trials:
             codes.add(self.generate_one())
+            trials += 1
+        if len(codes) < count:
+            raise RuntimeError("要求数に達しませんでした。桁数を増やすか、要求数を減らしてください。")
         return list(codes)
 
 

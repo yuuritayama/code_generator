@@ -24,20 +24,37 @@ def write_csv(path: Path, codes: list[str], *, with_index: bool, header: bool, e
 
 # --- 対話式コード生成 ---
 def run_generate_interactive():
+    # 16進モードの選択
+    use_hex = input("16進数（0-9, a-f のみ）で生成しますか？ (y/n): ").strip().lower() == "y"
     # 入力
     length = int(input("コードの文字数を入力してください（例: 6）: "))
-    use_lowercase = input("小文字アルファベットを使いますか？ (y/n): ").strip().lower() == "y"
-    use_uppercase = input("大文字アルファベットを使いますか？ (y/n): ").strip().lower() == "y"
-    use_digits = input("数字を使いますか？ (y/n): ").strip().lower() == "y"
     count = int(input("生成するコード数を入力してください（例: 20）: "))
+    
+    if use_hex:
+        hex_uppercase = input("A-F の大文字で出力しますか？ (y/n): ").strip().lower() == "y"
+        generator = CodeGenerator(
+            length=length,
+            use_hex=True,
+            hex_uppercase=hex_uppercase,
+        )
+    else:
+        use_lowercase = input("小文字アルファベットを使いますか？ (y/n): ").strip().lower() == "y"
+        use_uppercase = input("大文字アルファベットを使いますか？ (y/n): ").strip().lower() == "y"
+        use_digits = input("数字を使いますか？ (y/n): ").strip().lower() == "y"
+
+        # 全て n のときのフォールバック（エラーにせず小文字を既定）
+        if not any([use_lowercase, use_uppercase, use_digits]):
+            print("※ いずれも未選択のため、小文字のみで生成します。")
+            use_lowercase = True
+
+        generator = CodeGenerator(
+            length=length,
+            use_lowercase=use_lowercase,
+            use_uppercase=use_uppercase,
+            use_digits=use_digits,
+        )
 
     # 生成
-    generator = CodeGenerator(
-        length=length,
-        use_lowercase=use_lowercase,
-        use_uppercase=use_uppercase,
-        use_digits=use_digits,
-    )
     codes = generator.generate_many(count)
 
     # 出力先選択
